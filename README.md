@@ -16,7 +16,7 @@ This benchmark uses a scanned 10-K filing and 823 question/answer pairs created 
 
 To ensure fair comparison, we kept all parts of the RAG pipeline identical across each ingestion method - only the document parsing approach varied. This isolates the impact of document processing quality on overall RAG performance.
 
-![Benchmark Performance](images/benchmark_performance.png)
+![Benchmark Performance](/images/benchmark_performance.png)
 
 You can view our evaluation code and outputs [here](/benchmarks/benchmark.py).
 
