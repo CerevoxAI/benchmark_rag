@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import instructor
 import pandas as pd
 import requests
+from cerevox import Lexa
 from dataset import Question, questions
 from llama_parse import LlamaParse
 from openai import OpenAI
@@ -23,6 +24,21 @@ from util import (
     query_openai,
     split_pdf_into_page_chunks,
 )
+
+
+def create_cerevox_vector_index() -> VectorStore:
+    """Generate Cerevox Lexa Vector Store"""
+
+    start = time.time()
+
+    client = Lexa(api_key=os.getenv("CEREVOX_API_KEY"))
+    documents = client.parse_urls(SCANNED_DOCUMENT_URL, mode="advanced")
+
+    print(f"Cerevox Lexa took: {time.time() - start} seconds")
+
+    chunks = documents.get_all_markdown_chunks()
+
+    return VectorStore(chunks)
 
 
 def create_reducto_vector_index() -> VectorStore:
@@ -116,11 +132,14 @@ def run_rag_process(vector_store: VectorStore):
             retrieved = vector_store.retrieve(
                 question.query, max_context_size_chars=8000
             )
-            return query_openai(
-                system="You are a question answering assistant. Answer the question based on the following context:\n"
-                + retrieved,
-                content=question.query,
-            ), retrieved
+            return (
+                query_openai(
+                    system="You are a question answering assistant. Answer the question based on the following context:\n"
+                    + retrieved,
+                    content=question.query,
+                ),
+                retrieved,
+            )
 
         futures = [executor.submit(answer_question, question) for question in questions]
 
@@ -169,7 +188,7 @@ def grade_rag_results(df: pd.DataFrame):
     def grade_single(question: str, answer: str, solution: str) -> GradedQuestion:
         try:
             result: GradedQuestion = client.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model="gpt-4.1-2025-04-14",
                 messages=[
                     {
                         "role": "system",
@@ -211,8 +230,9 @@ def grade_rag_results(df: pd.DataFrame):
 
 if __name__ == "__main__":
     store_fns = [
+        create_cerevox_vector_index,
         # create_llamaparse_vector_index,
-        create_reducto_vector_index,
+        # create_reducto_vector_index,
         # create_unstructured_vector_index,
     ]
 
