@@ -1,4 +1,4 @@
-# Cerevox Lexa: Industry-Leading Document Processing for RAG
+# Cerevox Lexa: Document Processing for RAG
 
 *This benchmark is forked from [reductoai/benchmark](https://github.com/reductoai/benchmark) to demonstrate Cerevox Lexa's performance in document processing and RAG applications.*
 
